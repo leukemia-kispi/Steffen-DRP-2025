@@ -3,7 +3,7 @@ Title: Drug response profiling in acute lymphoblastic leukemia
 Version: 0.0.0.9000
 Authors@R: 
     person("Fabio", "Steffen", , "fabio.steffen@uzh.ch", role = c("aut", "cre"))
-Description: Companion code repository to manuscript "Drug response profiling guides precision therapy in relapsed and refractory childhood acute lymphoblastic leukemia"
+Description: Companion code repository to manuscript Steffen et al., "Drug response profiling guides precision therapy in relapsed and refractory childhood acute lymphoblastic leukemia" (2025).
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
