@@ -79,28 +79,28 @@ a local Postgres database and compute drug response metrics. Finally, we
 will visualize dose-response fingerprints and drug distributions.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define the project root</span></span>
-<span><span class="fu">here</span><span class="fu">::</span><span class="fu">i_am</span><span class="op">(</span><span class="st">"inst/analysis.Rmd"</span><span class="op">)</span></span></code></pre></div>
-<p>Make a connection to the local Postgres database</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu">drpr</span><span class="fu">::</span><span class="fu"><a href="../reference/connect_with_config.html">connect_with_config</a></span><span class="op">(</span><span class="st">"default"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">here</span><span class="fu">::</span><span class="fu">i_am</span><span class="op">(</span><span class="st">"inst/analysis.Rmd"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># open a connection to the Postgres database</span></span>
+<span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu">drpr</span><span class="fu">::</span><span class="fu"><a href="../reference/connect_with_config.html">connect_with_config</a></span><span class="op">(</span><span class="st">"default"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="curve-fitting-and-drug-scoring">Curve fitting and drug scoring<a class="anchor" aria-label="anchor" href="#curve-fitting-and-drug-scoring"></a>
 </h2>
 <p>Fit dose responses with a 3-parameter log-logistic model using the <a href="https://cran.r-project.org/web/packages/drc/index.html" class="external-link">drc</a>
 package.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pool</span><span class="fu">::</span><span class="fu">dbReadTable</span><span class="op">(</span><span class="va">con</span>, <span class="st">"plate_content_view"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">drpr</span><span class="fu">::</span><span class="fu"><a href="../reference/cli_fit.html">cli_fit</a></span><span class="op">(</span><span class="va">con</span><span class="op">)</span></span></code></pre></div>
 <p>Write cohort statistics (mean, standard deviation, median, IQR) from
 a primary DRP cohort into the database.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cohort_stats</span> <span class="op">&lt;-</span> <span class="fu">readr</span><span class="fu">::</span><span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html" class="external-link">read_csv</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu">here</span><span class="op">(</span><span class="st">"inst/data/cohort_stats.csv"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">pool</span><span class="fu">::</span><span class="fu">dbWriteTable</span><span class="op">(</span><span class="va">con</span>, <span class="st">"cohort_stats"</span>, <span class="va">cohort_stats</span>, append <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>From the fitted dose response parameter compute derivative metrics
 such as absolute logEC50 and the logAUC. Use the cohort statistics to
 compute z-scores for the logAUC metric.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pool</span><span class="fu">::</span><span class="fu">dbReadTable</span><span class="op">(</span><span class="va">con</span>, <span class="st">"feature_view"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">drpr</span><span class="fu">::</span><span class="fu"><a href="../reference/derive_fit_features.html">derive_fit_features</a></span><span class="op">(</span><span class="va">con</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">drpr</span><span class="fu">::</span><span class="fu"><a href="../reference/calculate_zscore_from_stats.html">calculate_zscore_from_stats</a></span><span class="op">(</span><span class="va">con</span>, cohort_id <span class="op">=</span> <span class="fl">1</span>, <span class="va">logAUC</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -116,7 +116,7 @@ compute z-scores for the logAUC metric.</p>
 <h2 id="visualizing-data">Visualizing data<a class="anchor" aria-label="anchor" href="#visualizing-data"></a>
 </h2>
 <p>Visualize the dose-response profiles and drug distributions</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">drpr</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_profile.html">plot_profile</a></span><span class="op">(</span></span>
 <span>  <span class="va">con</span>,</span>
 <span>  <span class="va">drug_name</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Venetoclax"</span>, <span class="st">"Bortezomib"</span>, <span class="st">"Dexamethasone"</span>, <span class="st">"Dasatinib"</span><span class="op">)</span>,</span>
@@ -130,7 +130,7 @@ compute z-scores for the logAUC metric.</p>
 <span>  width <span class="op">=</span> <span class="fl">10</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="../reference/figures/plots/profiles.png"></p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">drpr</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_distribution.html">plot_distribution</a></span><span class="op">(</span></span>
 <span>  <span class="va">con</span>,</span>
 <span>  .point_mask <span class="op">=</span> <span class="va">sid</span> <span class="op">==</span> <span class="fl">1</span>,</span>

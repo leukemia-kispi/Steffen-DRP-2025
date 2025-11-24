@@ -7,9 +7,14 @@ interface. For thsis purpose start a local REST-API server in the
 background (the server can be shut down later with `app$kill()`)
 
 ``` r
+# start up the REST-API server to communicate with the database
 app <- drpr::runAPI(background = TRUE)
 
+# Base URI to serve requests
 base_uri <- "http://127.0.0.1:3840/v1"
+
+# Define the project root
+here::i_am("inst/analysis.Rmd")
 ```
 
 ## Loading data into the database
@@ -92,7 +97,7 @@ drpr::request(
 
 ### DRP data
 
-Next, load a the drug layout into the database
+Next, load the drug layout into the database
 
 ``` r
 layout_body <- list(
@@ -160,3 +165,6 @@ drpr::request(
   method = "put"
 )
 ```
+
+➡️ Next, continue with [**Part II: Curve fitting and drug
+scoring**](analysis.md)

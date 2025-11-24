@@ -9,11 +9,8 @@ will visualize dose-response fingerprints and drug distributions.
 ``` r
 # Define the project root
 here::i_am("inst/analysis.Rmd")
-```
 
-Make a connection to the local Postgres database
-
-``` r
+# open a connection to the Postgres database
 con <- drpr::connect_with_config("default")
 ```
 
