@@ -1,0 +1,269 @@
+# Drug response profiling analysis
+
+This notebooks demonstrates how to use the `drpr` package to perform drug response profiling (DRP) analysis. It covers the following steps:
+
+-   Reading layout and measurement data from csv and loading them into a Postgres database via a REST-API
+-   Normalizing drug responses to DMSO controls
+-   Fitting dose-response curves using a 3-parameter log-logistic model
+-   Deriving drug response metrics such as logEC50 and the logarithmic area under the curve (AUC)
+-   Scoring the drug metrics relative to the cohort
+-   Visualizing dose-response profiles and drug distributions
+
+## Setup
+
+-  Define the project root
+
+```{r}
+here::i_am("inst/analysis.Rmd")
+```
+
+-   Make a connection to the local Postgres database
+
+```{r}
+con <- drpr::connect_with_config("default")
+```
+
+-   Start a local REST-API server
+
+```{r}
+app <- drpr::runAPI(background = TRUE)
+base_uri <- "http://127.0.0.1:3840/v1"
+```
+
+## Loading data
+
+1.  Instantiate a new test patient, disease stage, sample and assay by makeing a HTTP POST request to the database
+
+```{r}
+crf <- list(
+  patient = list(
+    pid = 1,
+    patient_crossref = "ZH-01",
+    birth_year = 2020,
+    diagnosis_id = 2,
+    sex_id = 1,
+    diagnosis_id = 2,
+    treating_hospital_id = 1
+  ),
+  stage = list(
+    stage_id = 1,
+    pid = 1,
+    disease_stage_id = 0,
+    stage_date = "2025-01-01",
+    tissue_id = 2
+  ),
+  sample = list(
+    sid = 1,
+    stage_id = 1,
+    pid = 1,
+    sample_crossref = "ZH-01-A",
+    puncture_date = "2025-01-01",
+    timepoint_collection = "d0",
+    tissue_id = 1
+  ),
+  assay = list(
+    assay_id = 1,
+    assay_description = "test_assay",
+    sid = 1,
+    drp_date = "2025-01-05",
+    leukemia_seeded = 10000,
+    fresh = FALSE,
+    msc_detached_id = 0,
+    contamination = 0
+  )
+)
+
+# push the data into the database
+drpr::request(
+  uri = "{base_uri}/patient",
+  method = "post",
+  body = crf[["patient"]]
+)
+
+drpr::request(
+  uri = "{base_uri}/stage",
+  method = "post",
+  body = crf[["stage"]]
+)
+
+drpr::request(
+  uri = "{base_uri}/sample",
+  method = "post",
+  body = crf[["sample"]]
+)
+
+drpr::request(
+  uri = "{base_uri}/assay",
+  method = "post",
+  body = crf[["assay"]]
+)
+
+# check that the patient was indeed created
+drpr::request(
+  uri = "{base_uri}/patient/1",
+  method = "get"
+)
+```
+
+2.  Load a the drug layout into the database
+
+```{r}
+layout_body <- list(
+  layout_id = 1,
+  file = here::here(
+    "inst/data/layout.csv"
+  ),
+  type_id = 2,
+  format_id = 2
+)
+
+drpr::request(
+  uri = "{base_uri}/layout",
+  method = "post",
+  body = layout_body
+)
+```
+
+```{r}
+plate <- pool::dbReadTable(con, "plate_content_view")
+
+drpr::plot_plate(
+  plate,
+  color = drug_name,
+  alpha = log10(concentration),
+  n_wells = 384,
+  palette = "harmony1",
+  save = TRUE,
+  filename = here::here("inst/plots/plate_layout.png")
+)
+```
+
+![](plots/plate_layout.png)
+
+3.  Load the measurement into the database
+
+```{r}
+measurement_body <- list(
+  measurement_id = 1,
+  file = here::here(
+    "inst/data/measurement.csv"
+  ),
+  plate_no = 1,
+  format_id = 2,
+  img_well_coverage = 0.66
+)
+
+drpr::request(
+  uri = "{base_uri}/measurement",
+  method = "post",
+  body = measurement_body
+)
+```
+
+```{r}
+drpr::plot_plate(
+  plate,
+  color = norm_response,
+  n_wells = 384,
+  palette = "sunset",
+  save = TRUE,
+  filename = here::here("inst/plots/plate_measurement.png")
+)
+```
+
+![](plots/plate_measurement.png)
+
+4.  Assign the layout, measurement and assay to a plate
+
+```{r}
+body <- tibble::tibble(
+  plate_id = 1,
+  layout_id = 1,
+  measurement_id = 1,
+  assay_id = 1
+)
+
+drpr::request(
+  uri = "{base_uri}/plate",
+  method = "post",
+  body = body
+)
+```
+
+5.  Normalize the drug responses to DMSO
+
+```{r}
+drpr::request(
+  uri = "{base_uri}/normalize_measurement/1",
+  method = "put"
+)
+```
+
+6.  Fit dose responses with a 3-parameter log-logistic model
+
+```{r}
+plate |>
+  drpr::cli_fit(con)
+```
+
+7. Write cohort statistics (mean, standard deviation, median, IQR) from a primary DRP cohort into the database. 
+
+```{r}
+cohort_stats <- readr::read_csv(here::here("inst/data/cohort_stats.csv"))
+pool::dbWriteTable(con, "cohort_stats", cohort_stats, append = TRUE)
+```
+
+
+7. From the fitted dose response parameter compute derivative metrics such as absolute logEC50 and the logAUC. 
+Use the cohort statistics to compute z-scores for the logAUC metric.
+
+
+```{r}
+pool::dbReadTable(con, "feature_view") |>
+  drpr::derive_fit_features(con) |>
+  drpr::calculate_zscore_from_stats(con, cohort_id = 1, logAUC) |>
+  dplyr::select(drug_name, logEC50, norm_logAUC, abs_logEC50, zlogAUC) |>
+  dplyr::mutate(dplyr::across(is.numeric, ~ round(.x, 2))) |>
+  drpr::as_flextable(
+    save = TRUE,
+    filename = here::here("inst/plots/feature_table.png")
+  )
+```
+
+![](plots/feature_table.png)
+
+8. Visualize the dose-response profiles and drug distributions
+
+```{r}
+drpr::plot_profile(
+  con,
+  drug_name %in% c("Venetoclax", "Bortezomib", "Dexamethasone", "Dasatinib"),
+  .fg_sample_mask = sid == 1,
+  color_fill = zlogAUC,
+  limits = c(-1.5, 1.5),
+  quantiles = TRUE,
+  save = F,
+  filename = here::here("inst/plots/profiles.png"),
+  nrow = 1,
+  width = 10
+)
+```
+
+![](plots/profiles.png)
+
+```{r}
+drpr::plot_distribution(
+  con,
+  .point_mask = sid == 1,
+  .jitter_mask = cohort_id == 1,
+  color_fill = zlogAUC,
+  sort_by = norm_logAUC,
+  quantiles = TRUE,
+  add_boxplot = TRUE,
+  limits = c(-1.5, 1.5),
+  save = TRUE,
+  filename = here::here("inst/plots/distribution.png")
+)
+```
+
+![](plots/distribution.png)

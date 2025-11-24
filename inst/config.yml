@@ -1,0 +1,4 @@
+default:
+  dbname: "steffen-drp-2025"
+  dbhost: "localhost"
+  dbuser: "postgres"

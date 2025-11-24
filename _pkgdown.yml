@@ -1,0 +1,75 @@
+url: ~
+template:
+  bootstrap: 5
+
+toc:
+  depth: 3
+
+articles:
+- title: Drug response profiling analysis
+  navbar: Analysis
+  contents:
+  - data_loading
+  - analysis
+
+
+reference:
+- title: Database connections
+- subtitle: Postgres connections
+  desc: Establish connections to SQL databases
+  contents:
+    - has_concept("connecting")
+
+- title: Input/Output (IO)
+- subtitle: Readers
+  desc: Parse layout and measurement and CRF files
+  contents:
+    - starts_with("validate_")
+
+- title: Transformations
+- subtitle: Feature translation
+  desc: Translate between ID and character features
+  contents:
+    - decode
+    - encode
+    - id_to_desc
+    - desc_to_id
+    - encode_csv
+    - reference
+- subtitle: Format conversion
+  desc: Pivot between wide and long formats
+  contents:
+    - starts_with("pivot")
+- subtitle: Mutate and impute
+  desc: Mutate tibbles and add missing values
+  contents:
+    - negative_control_stat
+    - normalize_response
+    - normalize_measurements
+    - as_factor
+    - select_from_pg
+
+- title: Curve fitting
+  desc: Prepare and post-process for dose-response models
+  contents:
+    - has_concept("fitting")
+
+- title: Simulate functions
+  desc:  Create synthetic datasets from a parameter set
+  contents:
+    - has_concept("simulate")
+
+- title: Scoring functions
+  desc:  Calculate derivate fit parameters and rank drug response profiles
+  contents:
+    - has_concept("scoring")
+
+- title: Plotting functions
+  desc:  Visualize drug response profiles
+  contents:
+    - has_concept("plotting")
+    - has_concept("coloring")
+
+- title: Helper functions
+  contents:
+    - has_concept("helper")

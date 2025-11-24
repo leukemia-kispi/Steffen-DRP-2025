@@ -1,0 +1,2485 @@
+openapi: 3.1.0
+info:
+  title: DRP-API
+  description: Plumber API drug response profiling
+  version: "1.0"
+
+servers:
+  - url: "/v1"
+    description: Local dev server
+
+
+tags:
+  - name: identity
+    description: Identity of the logged-in database user
+  - name: next
+    description: Next ID of the primary key
+  - name: patient
+    description: Patient with a hematological or solid cancer
+  - name: stage
+    description: Disease stage (event)
+  - name: sample
+    description: Sample of a patient
+  - name: assay
+    description: DRP assay describing experimental conditions
+  - name: genetics
+    description: Genetic alterations of a patient's cancer cells
+  - name: flow
+    description: Flow cytometry of a patient's cancer cells
+  - name: cohort description
+    description: Name of the cohort
+  - name: cohort
+    description: Collections of samples and assays
+  - name: drug
+    description: Drug library
+  - name: material
+    description: Material library
+  - name: kinetic
+    description: Kinetic entries of mouse engraftments 
+  - name: lot 
+    description: Lot number library
+  - name: layout
+    description: Layout file and metadata
+  - name: measurement
+    description: Measurement file and metadata
+  - name: plate
+    description: Linking of layout and measurement
+  - name: normalization
+    description: Normalize measurement
+  - name: fitting
+    description: Fit a dose-response function on the measurements
+
+
+paths:
+  /user:
+    get:
+      summary: Identity of the logged-in database user
+      tags:
+        - identity
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+
+# ==============================================================================
+
+  /v1/patient/{pid}: 
+    parameters:
+      - in: path
+        name: pid
+        schema:
+          type: integer
+        required: true
+        description: The patient ID
+    get:
+      summary: Get a patient by ID
+      tags:
+        - patient
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a patient by ID
+      tags:
+        - patient
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update a patient by ID
+      tags:
+        - patient
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Patient'
+                - properties:
+                    pid:
+                      readOnly: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/patient:
+    get:
+      summary: Get patient(s) by query
+      tags:
+        - patient
+        - 
+      parameters:
+        - in: query
+          name: pid
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: patient_crossref
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+    post:
+      summary: Write Patient record to database
+      tags:
+        - patient
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Patient'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/stage/{stage_id}: 
+    parameters:
+      - in: path
+        name: stage_id
+        schema:
+          type: integer
+        required: true
+        description: The stage ID
+    get:
+      summary: Get a stage by ID
+      tags:
+        - stage
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a stage by ID
+      tags:
+        - stage
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update a stage by ID
+      tags:
+        - stage
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Stage'
+                - properties:
+                    stage_id:
+                      readOnly: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/stage:
+    get:
+      summary: Get stage(s) by query
+      tags:
+        - stage
+        - 
+      parameters:
+        - in: query
+          name: stage_id
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: pid
+          schema:
+            type: array
+            items: 
+              type: string
+        - in: query
+          name: patient_crossref
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+    post:
+      summary: Write stage record to database
+      tags:
+        - stage
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Stage'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/sample/{sid}: 
+    parameters:
+      - in: path
+        name: sid
+        schema:
+          type: integer
+        required: true
+        description: The sample ID
+    get:
+      summary: Get a sample by ID
+      tags:
+        - sample
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a sample by ID
+      tags:
+        - sample
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update a sample by ID
+      tags:
+        - sample
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Sample'
+                - properties:
+                    sid:
+                      readOnly: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/sample:
+    get:
+      summary: Get sample(s) by query
+      tags:
+        - sample
+        - 
+      parameters:
+        - in: query
+          name: sid
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: lknumber
+          schema:
+            type: array
+            items: 
+              type: string
+        - in: query
+          name: sample_crossref
+          schema:
+            type: string
+        - in: query
+          name: pid
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+    post:
+      summary: Write sample record to database
+      tags:
+        - sample
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Sample'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/assay/{assay_id}: 
+    parameters:
+      - in: path
+        name: assay_id
+        schema:
+          type: integer
+        required: true
+        description: The assay ID
+    get:
+      summary: Get an assay by ID
+      tags:
+        - assay
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete an assay by ID
+      tags:
+        - assay
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update an assay by ID
+      tags:
+        - assay
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Assay'
+                - properties:
+                    assay_id:
+                      readOnly: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/assay:
+    get:
+      summary: Get assay(s) by query
+      tags:
+        - assay
+        - 
+      parameters:
+        - in: query
+          name: assay_id
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: sid
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: lknumber
+          schema:
+            type: array
+            items: 
+              type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+    post:
+      summary: Write assay record to database
+      tags:
+        - assay
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Assay'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/genetics/{genetic_id}: 
+    parameters:
+      - in: path
+        name: genetic_id
+        schema:
+          type: integer
+        required: true
+        description: The genetic ID
+    get:
+      summary: Get a genetic variant by ID
+      tags:
+        - genetics
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a genetic variant by ID
+      tags:
+        - genetics
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update a genetic variant by ID
+      tags:
+        - genetics
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Genetics'
+                - properties:
+                    genetic_id:
+                      readOnly: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/genetics:
+    get:
+      summary: Get genetic variant(s) by query
+      tags:
+        - genetics
+        - 
+      parameters:
+        - in: query
+          name: genetic_id
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: pid
+          schema:
+            type: array
+            items: 
+              type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+    post:
+      summary: Write genetic variant record to database
+      tags:
+        - genetics
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Genetics'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/cohort_description/{cohort_id}: 
+    parameters:
+      - in: path
+        name: cohort_id
+        schema:
+          type: integer
+        required: true
+        description: The cohort ID
+    get:
+      summary: Get a cohort description by ID
+      tags:
+        - cohort description
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a cohort description by ID
+      tags:
+        - cohort description
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update a cohort description by ID
+      tags:
+        - cohort description
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/CohortDescription'
+                - properties:
+                    cohort_id:
+                      readOnly: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/cohort_description:
+    get:
+      summary: Get cohort description(s) by query
+      tags:
+        - cohort description
+        - 
+      parameters:
+        - in: query
+          name: cohort_id
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: cohort_name
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+    post:
+      summary: Write cohort description record to database
+      tags:
+        - cohort description
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CohortDescription'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/cohort/{cohort_id}: 
+    parameters:
+      - in: path
+        name: cohort_id
+        schema:
+          type: integer
+        required: true
+        description: The cohort ID
+    get:
+      summary: Get a cohort entry by ID
+      tags:
+        - cohort
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/cohort/{cohort_id}/{sid}/{assay_id}:
+    parameters:
+      - in: path
+        name: cohort_id
+        schema:
+          type: integer
+        required: true
+        description: The cohort ID
+      - in: path
+        name: sid
+        schema:
+          type: integer
+        required: true
+        description: The sample ID
+      - in: path
+        name: assay_id
+        schema:
+          type: integer
+        required: true
+        description: The assay ID
+    delete:
+      summary: Delete a cohort entry by IDs
+      tags:
+        - cohort
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+
+  /v1/cohort:
+    get:
+      summary: Get cohort entries(s) by query
+      tags:
+        - cohort
+        - 
+      parameters:
+        - in: query
+          name: cohort_id
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: cohort_name
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+    post:
+      summary: Write cohort entry record to database
+      tags:
+        - cohort
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cohort'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/flow/{flow_id}: 
+    parameters:
+      - in: path
+        name: flow_id
+        schema:
+          type: integer
+        required: true
+        description: The flow ID
+    get:
+      summary: Get a flow by ID
+      tags:
+        - flow
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a flow by ID
+      tags:
+        - flow
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update a flow by ID
+      tags:
+        - flow
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Flow'
+                - properties:
+                    flow_id:
+                      readOnly: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/flow:
+    get:
+      summary: Get flow(s) by query
+      tags:
+        - flow
+        - 
+      parameters:
+        - in: query
+          name: flow_id
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: pid
+          schema:
+            type: array
+            items: 
+              type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+    post:
+      summary: Write flow record to database
+      tags:
+        - flow
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Flow'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+
+  /v1/drug/{drug_id}: 
+    parameters:
+      - in: path
+        name: drug_id
+        schema:
+          type: integer
+        required: true
+        description: The drug ID
+    get:
+      summary: Get a drug by ID
+      tags:
+        - drug
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a drug by ID
+      tags:
+        - drug
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update a drug by ID
+      tags:
+        - drug
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Drug'
+                - properties:
+                    drug_id:
+                      readOnly: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/drug:
+    get:
+      summary: Get drug(s) by query
+      tags:
+        - drug
+        - 
+      parameters:
+        - in: query
+          name: drug_id
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: drug_name
+          schema:
+            type: array
+            items: 
+              type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+    post:
+      summary: Write drug record to database
+      tags:
+        - drug
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Drug'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/material/{material_id}: 
+    parameters:
+      - in: path
+        name: material_id
+        schema:
+          type: integer
+        required: true
+        description: The material ID
+    get:
+      summary: Get material by ID
+      tags:
+        - material
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete material by ID
+      tags:
+        - material
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update material by ID
+      tags:
+        - material
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Material'
+                - properties:
+                    material_id:
+                      readOnly: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/material:
+    get:
+      summary: Get material(s) by query
+      tags:
+        - material
+        - 
+      parameters:
+        - in: query
+          name: material_id
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: sid
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: mouse_id
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: transplantation_id
+          schema:
+            type: array
+            items: 
+              type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+    post:
+      summary: Write material record to database
+      tags:
+        - material
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Material'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/kinetic/{kinetic_id}: 
+    parameters:
+      - in: path
+        name: kinetic_id
+        schema:
+          type: integer
+        required: true
+        description: The kinetic ID
+    get:
+      summary: Get kinetic by ID
+      tags:
+        - kinetic
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete kinetic by ID
+      tags:
+        - kinetic
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update kinetic by ID
+      tags:
+        - kinetic
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Kinetic'
+                - properties:
+                    kinetic_id:
+                      readOnly: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/kinetic:
+    get:
+      summary: Get kinetic(s) by query
+      tags:
+        - kinetic
+        - 
+      parameters:
+        - in: query
+          name: kinetic_id
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: mouse_id
+          schema:
+            type: array
+            items: 
+              type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+    post:
+      summary: Write kinetic record to database
+      tags:
+        - kinetic
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Kinetic'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/lot/{lot_id}: 
+    parameters:
+      - in: path
+        name: lot_id
+        schema:
+          type: integer
+        required: true
+        description: The lot ID
+    get:
+      summary: Get a lot by ID
+      tags:
+        - lot
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a lot by ID
+      tags:
+        - lot
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update a lot by ID
+      tags:
+        - lot
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Lot'
+                - properties:
+                    lot_id:
+                      readOnly: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/lot:
+    get:
+      summary: Get lot(s) by query
+      tags:
+        - lot
+        - 
+      parameters:
+        - in: query
+          name: lot_id
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: lot
+          schema:
+            type: array
+            items: 
+              type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+    post:
+      summary: Write a lot record to database
+      tags:
+        - lot
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Lot'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/profile:
+    get:
+      summary: Plot a profile
+      tags:
+        - plotting
+        - 
+      parameters:
+        - in: query
+          name: drug
+          schema:
+            type: string
+          example: "Venetoclax"
+        - in: query
+          name: cohort
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/OK_image'
+
+# ------------------------------------------------------------------------------
+
+  /v1/layout/{layout_id}:
+    parameters:
+      - in: path
+        name: layout_id
+        schema:
+          type: integer
+        required: true
+        description: The layout ID
+    get:
+      summary: Get a layout by ID
+      tags:
+        - layout
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a layout by ID
+      tags:
+        - layout
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update a layout by ID
+      tags:
+        - layout
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Layout'
+                - properties:
+                    layout_id:
+                      readOnly: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/layout:
+    post:
+      summary: Write layout record to database
+      tags:
+        - layout
+        - 
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Layout'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+                
+# ------------------------------------------------------------------------------
+
+  /v1/measurement/{measurement_id}:
+    parameters:
+      - in: path
+        name: measurement_id
+        schema:
+          type: integer
+        required: true
+        description: The measurement ID
+    get:
+      summary: Get a measurement by ID
+      tags:
+        - measurement
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a measurement by ID
+      tags:
+        - measurement
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update a measurement by ID
+      tags:
+        - measurement
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Measurement'
+                - properties:
+                    measurement_id:
+                      readOnly: true  
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/measurement:
+    post:
+      summary: Write measurement record to database
+      tags:
+        - measurement
+        - 
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Measurement'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/plate/{plate_id}:
+    parameters:
+      - in: path
+        name: plate_id
+        schema:
+          type: integer
+        required: true
+        description: The plate ID
+    get:
+      summary: Get a plate by ID
+      tags:
+        - plate
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a plate by ID
+      tags:
+        - plate
+        - 
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NoContent'
+    put:
+      summary: Update a plate by ID
+      tags:
+        - plate
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/Plate'
+                - properties:
+                    plate_id:
+                      readOnly: true
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /v1/plate:
+    post:
+      summary: Write plate record to database
+      tags:
+        - plate
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Plate'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/normalize_measurement/{plate_id}:
+    parameters:
+      - in: path
+        name: plate_id 
+        schema:
+          type: integer
+        required: true
+        description: The plate ID
+    put:
+      summary: Normalize a plate by ID
+      tags:
+        - normalization
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+# ------------------------------------------------------------------------------
+
+  /v1/plate_content:
+    get:
+      summary: Get plate content
+      tags:
+        - plate
+        - 
+      parameters:
+        - in: query
+          name: plate_id
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: sid
+          schema:
+            type: array
+            items: 
+              type: integer
+        - in: query
+          name: lknumber
+          schema:
+            type: array
+            items: 
+              type: string
+        - in: query
+          name: drug_name
+          schema:
+            type: array
+            items: 
+              type: string
+        - in: query
+          name: row
+          schema:
+            type: array
+            items: 
+              type: string
+        - in: query
+          name: col
+          schema:
+            type: array
+            items: 
+              type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/fit_measurement:
+    post:
+      summary: Write fit parameter to database
+      tags:
+        - fitting
+        - 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Fit'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ------------------------------------------------------------------------------
+
+  /v1/next/{tbl}:
+    parameters:
+      - in: path
+        name: tbl 
+        schema:
+          type: string
+        required: true
+        description: The name of the table
+    get:
+      summary: Get the next ID of the primary key for a given table
+      tags:
+        - next
+        - 
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ==============================================================================
+
+components:
+  schemas:
+    Patient:
+      description: "A patient record"
+      type: object
+      properties:
+        pid:
+          type: integer
+          example: 9999
+        patient_crossref:
+          type: array
+          items:
+            type: "string"
+          example: ["ZH-1"]
+        has_lknumbers:
+          type: array
+          items:
+            type: "string"
+          example: ["LK2000.001"]
+        sex_id:
+          type: integer
+          example: 1
+        ethnicity_id:
+          type: integer
+          example: 3
+        birth_year_month_date:
+          type: date
+          example: 2020-01-16
+        birth_year:
+          type: boolean
+          example: 2020
+        diagnosis_id:
+          type: integer
+          example: 1
+        egil_fab_id:
+          type: integer
+          example: 1
+        etp:
+          type: boolean
+          example: false
+        subtype_id:
+          type: integer
+          example: 1
+        consent:
+          type: boolean
+          example: true
+        treating_hospital_id:
+          type: integer
+          example: 1
+        treating_physician:
+          type: string
+          example: "John Smith"
+        severe_concomitant_disease:
+          type: string
+          example: "Sepsis"
+        in_fedrral:
+          type: boolean
+          example: false
+      required:
+        - pid
+        -
+      additionalProperties: false
+
+    Stage:
+      description: "A stage of the disease"
+      type: object
+      properties:
+        stage_id:
+          type: integer
+          example: 9999
+        pid:
+          type: integer
+          example: 9999
+        disease_stage_id:
+          type: integer
+          example: 0
+        diagnosis_id:
+          type: integer
+          example: 1
+        relapse_time_id:
+          type: integer
+          example: 2
+        stage_date:
+          type: date
+          example: 2022-01-01
+        stage_blast_fraction:
+          type: number
+          example: 0.8
+        tissue_id:
+          type: integer
+          example: 1
+        stage_method_id:
+          type: integer
+          example: 1
+        giga_blast_count_per_liter:
+          type: integer
+          example: 10
+        cns_status_id:
+          type: integer
+          example: 0
+        localization_id:
+          type: integer
+          example: 2
+        localization_details:
+          type: string
+          example: "Testis"
+        risk_id:
+          type: integer
+          example: 3
+        refractory:
+          type: boolean
+          example: true
+        sample_for_drp:
+          type: boolean
+          example: true
+        sid_d0:
+          type: integer
+          example: 9999
+        comment:
+          type: string
+          example: "Any additional comments"
+      required:
+        - stage_id
+        - pid
+      additionalProperties: false
+
+    Sample:
+      description: "A sample of cells from a patient"
+      type: object
+      properties:
+        sid:
+          type: integer
+          example: 9999
+        pid:
+          type: integer
+          example: 9999
+        lknumber:
+          type: string
+          example: LK2000.001
+        sample_crossref:
+          type: string
+          example: GPOH0001
+        disease_stage_id:
+          type: integer
+          example: 2
+        inform:
+          type: string
+          example: I100_001
+        country_id:
+          type: integer
+          example: 216
+        city:
+          type: string
+          example: "Zurich"
+        puncture_date:
+          type: date
+          example: "2022-01-01"
+        timepoint_collection:
+          type: string
+          example: "d0"
+        blast_fraction:
+          type: number
+          example: 0.8
+        tissue_id:
+          type: integer
+          example: 1
+        fresh:
+          type: boolean
+          example: false
+        mio_cells_shipped:
+          type: number
+          example: 15
+        cell_isolation_id:
+          type: integer
+          example: 1
+        anticoagulant_id:
+          type: integer
+          example: 2
+        shipping_medium:
+          type: string
+          example: "10% DMSO / 90% FCS"
+        sending_hospital_id:
+          type: integer
+          example: 1
+        correspondence:
+          type: string
+          example: "John Smith"
+        sending_date:
+          type: date
+          example: "2022-01-01"
+        arrival_date:
+          type: date
+          example: "2022-01-04"
+        reporting_date:
+          type: date
+          example: "2022-01-15"
+        sent_for_pdx:
+          type: boolean
+          example: true
+        question:
+          type: string
+          example: "How to bridge to HSCT?"
+        classification_id:
+          type: array
+          items:
+            type: string
+          example: [2, 3]
+        comment:
+          type: string
+          example: "Any additional comments"
+      required:
+        - sid
+        - pid
+      additionalProperties: false
+
+    Assay:
+      description: "A drug screening assay"
+      type: object
+      properties:
+        assay_id:
+          type: integer
+          example: 9999
+        assay_description:
+          type: string
+          example: Test assay
+        sid:
+          type: integer
+          example: 9999
+        origin_id:
+          type: integer
+          example: 1
+        drp_hospital_id:
+          type: integer
+          example: 1
+        drp_date:
+          type: date
+          example: "2022-01-04"
+        msc_passage:
+          type: integer
+          example: 15
+        msc_seeded:
+          type: integer
+          example: 2500
+        fraction_msc_detached:
+          type: number
+          example: 0.1
+        msc_detached_id:
+          type: integer
+          example: 0
+        leukemia_thawing:
+          type: number
+          example: 0.9
+        leukemia_seeded:
+          type: integer
+          example: 10000
+        leukemia_18h:
+          type: integer
+          example: 6000
+        drug_exposure_hours:
+          type: integer
+          example: 72
+        medium_id:
+          type: integer
+          example: 1
+        contaminated_id:
+          type: integer
+          example: 0
+        assay_failed:
+          type: boolean
+          example: false
+        comment:
+          type: string
+          example: "Any additional comments"
+      required:
+        - assay_id
+        -
+      additionalProperties: false
+
+    Genetics:
+      description: "A genetic variant"
+      type: object
+      properties:
+        genetic_id:
+          type: integer
+          example: 9999
+        pid:
+          type: integer
+          example: 1
+        disease_stage_id:
+          type: integer
+          example: 0
+        gene_id:
+          type: integer
+          example: 102
+        alteration_id:
+          type: integer
+          example: 7
+        position:
+          type: string
+          example: "p.E1001K"
+        vaf:
+          type: number
+          example: 0.3
+        fusion_partner_id:
+          type: integer
+          example: 1500
+        chromosomal_aberration_id:
+          type: integer
+          example: 9
+        karyotype:
+          type: string
+          example: del7p
+        gene_signature_id:
+          type: integer
+          example: 1
+        tmb:
+          type: number
+          example: 0.8
+        inform_priority:
+          type: integer
+          example: 2
+        functional_consequence_id:
+          type: integer
+          example: 0
+        comment:
+          type: string
+          example: "Any additional comments"
+      required:
+        - genetic_id
+        - pid
+      additionalProperties: false
+
+    Flow:
+      description: "A marker expression from flow cytometry"
+      type: object
+      properties:
+        flow_id:
+          type: integer
+          example: 9999
+        pid:
+          type: integer
+          example: 1
+        disease_stage_id:
+          type: integer
+          example: 0
+        marker_id:
+          type: array
+          items:
+            type: integer
+          example: [15, 17]
+        expression_id:
+          type: array
+          items:
+            type: integer
+          example: [2, 1]
+      required:
+        - flow_id
+        - pid
+        - marker_id
+      additionalProperties: false
+
+    CohortDescription:
+      description: "The description of a cohort"
+      type: object
+      properties:
+        cohort_id:
+          type: integer
+          example: 9999
+        cohort_name:
+          type: string
+          example: "All samples"
+      required:
+        - cohort_id
+      additionalProperties: false
+
+    Cohort:
+      description: "A collection of samples/assays"
+      type: object
+      properties:
+        cohort_id:
+          type: integer
+          example: 9999
+        assay_id:
+          type: integer
+          example: 9999
+        sid:
+          type: integer
+          example: 9999
+      required:
+        - cohort_id
+        - assay_id
+        - sid
+      additionalProperties: false
+
+    Drug:
+      description: "A drug record"
+      type: object
+      properties:
+        drug_id:
+          type: integer
+          example: 9998
+        drug_name:
+          type: string
+          example: Cytarabine
+        abbreviation:
+          type: string
+          example: ARAC
+        synonyms:
+          type: array
+          items:
+            type: string
+          example: ["Ara-C", "AraC"]
+        min_assay_conc:
+          type: number
+          example: 0.1
+        max_assay_conc:
+          type: number
+          example: 10000
+        unit_id:
+          type: integer
+          example: 3
+        functional_classes_id:
+          type: array
+          items:
+            type: integer
+          example: [4, 59]
+        biological_processes_id:
+          type: array
+          items:
+            type: integer
+          example: 15
+        stock_conc:
+          type: int
+          example: 8000000
+        stock_plate_no:
+          type: integer
+          example: 2
+        stock_well:
+          type: string
+          example: "C1"
+        max_master_conc:
+          type: integer
+          example: 8000000
+        plate_priority:
+          type: integer
+          example: 1
+        priority:
+          type: integer
+          example: 5
+        n_doses:
+          type: integer
+          example: 6
+        replicates:
+          type: integer
+          example: 2
+        solvent_id:
+          type: integer
+          example: 1
+        cas_number:
+          type: string
+          example: "147-94-4"
+        chembl:
+          type: string
+          example: "CHEMBL803"
+      required:
+        - drug_id
+        -
+      additionalProperties: false
+
+    Material:
+      description: "A material record of a primary sample or derivative"
+      type: object
+      properties:
+        material_id:
+          type: integer
+          example: 1
+        sid:
+          type: integer
+          example: 1
+        origin_id:
+          type: integer
+          example: 1
+        mouse_id:
+          type: integer
+          example: 1
+        derived_from_mouse_id:
+          type: integer
+          example: 1
+        transplantation_id:
+          type: integer
+          example: 1
+        cas9:
+          type: boolean
+          example: false
+        tissue_id:
+          type: integer
+          example: 1
+        has_engrafted:
+          type: boolean
+          example: true
+        transplantation_date:
+          type: date
+          example: "2024-01-01"
+        harvesting_date:
+          type: date
+          example: "2024-01-31"
+        comment:
+          type: string
+          example: example comment
+        empty:
+          type: boolean
+          example: false
+      required:
+        - material_id
+        -
+      additionalProperties: false
+
+    Kinetic:
+      description: "A record of engraftment kinetics from a mice bleeding"
+      type: object
+      properties:
+        kinetic_id:
+          type: integer
+          example: 1
+        mouse_id:
+          type: integer
+          example: 1
+        measurement_date:
+          type: date
+          example: "2024-01-01"
+        percentage_cd45:
+          type: number
+          example: 12.5
+        percentage_cd19:
+          type: number
+          example: 12.5
+        percentage_cd7:
+          type: number
+          example: 12.5
+      required:
+        - kinetic_id
+        -
+      additionalProperties: false
+
+    Lot:
+      description: "A batch/lot record for a drug"
+      type: object
+      properties:
+        lot_id:
+          type: integer
+          example: 1
+        lot:
+          type: string
+          example: lot_number
+        opening_date:
+          type: date
+          example: "2024-01-01"
+        drug_id:
+          type: integer
+          example: 1
+        vendor:
+          type: string
+          example: Selleckchem
+        catalog_number: 
+          type: string
+          example: catalog_number
+        comment:
+          type: string
+          example: example comment
+      required:
+        - lot_id
+        -
+      additionalProperties: false
+
+    Layout:
+      description: "A layout record for a drug screening plate"
+      type: object
+      properties:
+        layout_id:
+          type: integer
+          example: 1
+        file:
+          type: string
+          format: binary
+          description: "Layout file (.csv) containing columns: col, row, drug, concentration, unit, medium_id, material_id"
+        type_id:
+          type: integer
+          example: 1
+        format_id:
+          type: integer
+          example: 1
+      required:
+        - layout_id
+        - file
+      additionalProperties: false
+
+    Measurement:
+      description: "A measurement record for a drug screening plate"
+      type: object
+      properties:
+        measurement_id:
+          type: integer
+          example: 1
+        file:
+          type: string
+          format: binary
+          description: "Measurement file (.csv) containing columns: col, row, readout_id, marker_ids, response, exclude, exclude_reason"
+        plate_no:
+          type: integer
+          example: 1
+        format_id:
+          type: integer
+          example: 1
+        resolution_id:
+          type: integer
+          example: 1
+        img_well_coverage:
+          type: number
+          example: 0.66
+        confocal:
+          type: boolean
+          example: true
+        bias:
+          type: boolean
+          example: true
+      required:
+        - measurement_id
+        - file
+      additionalProperties: false
+
+    Plate:
+      description: "A multi-well plate record"
+      type: object
+      properties:
+        plate_id:
+          type: integer
+          example: 1
+        layout_id:
+          type: integer
+          example: 1
+        measurement_id:
+          type: integer
+          example: 1
+        assay_id:
+          type: integer
+          example: 1
+        manual_normalization:
+          type: boolean
+          example: true
+        manual_dmso_mean:
+          type: number
+          example: 1000
+        include_current_lot:
+          type: boolean
+          example: false
+        control_wells_t18:
+          type: string
+          example: A1
+        control_wells_t96:
+          type: string
+          example: A2
+        comment:
+          type: string
+          example: This is a comment
+      required:
+        - plate_id
+        -
+      additionalProperties: false
+
+    Well:
+      description: "A well (row/col) in a screening plate"
+      type: object
+      properties:
+        plate_id:
+          type: integer
+          example: 1
+        row:
+          type: string
+          example: C
+        col:
+          type: integer
+          example: 3
+        readout_id:
+          type: integer
+          example: 2
+        exclude_reason:
+          type: string 
+          example: Reason for exclusion
+      required:
+        - plate_id
+        - row
+        - col
+        - readout_id
+      additionalProperties: false
+
+    DrugTreatment:
+      description: "A drug treatment in a screening plate"
+      type: object
+      properties:
+        plate_id:
+          type: integer
+          example: 1
+        sid:
+          type: integer
+          example: 1
+        drug_id:
+          type: integer
+          example: 2
+        readout_id:
+          type: integer
+          example: 2
+        exclude_reason:
+          type: string 
+          example: Reason for exclusion
+      required:
+        - plate_id
+        - sid
+        - drug_id
+        - readout_id
+      additionalProperties: false
+
+    DoseResponse:
+      description: "A dose-response record of a drug in a screening plate"
+      type: object
+      properties:
+        plate_id:
+          type: integer
+          example: 1
+        sid:
+          type: integer
+          example: 1
+        lknumber:
+          type: string
+          example: LK2000.001
+        drug_id:
+          type: integer
+          example: 2
+        concentration:
+          type: number
+          example: 100
+        readout_id:
+          type: integer
+          example: 2
+        norm_response:
+          type: number
+          example: 0.85
+        exclude:
+          type: boolean 
+          example: false
+      required:
+        - plate_id
+        - sid
+        - drug_id
+        - readout_id
+        - concentration
+        - norm_response
+
+    Fit:
+      description: "A dose response fit initialization object"
+      type: object
+      properties:
+        dose_response_table:
+          type: array
+          items:
+            $ref: '#/components/schemas/DoseResponse'
+          example:
+            - plate_id: 1
+              sid: 1
+              lknumber: "LK2000.001"
+              drug_id: 2
+              concentration: 1
+              readout_id: 1
+              norm_response: 1
+              exclude: false
+            - plate_id: 1
+              sid: 1
+              lknumber: "LK2000.001"
+              drug_id: 2
+              concentration: 10
+              readout_id: 1
+              norm_response: 0.5
+              exclude: false
+            - plate_id: 1
+              sid: 1
+              lknumber: "LK2000.001"
+              drug_id: 2
+              concentration: 100
+              readout_id: 1
+              norm_response: 0.2
+              exclude: false
+        fixed:
+          type: array
+          items:
+            type: integer
+            example: [NA, NA, 1, NA, 1]
+        lowerl:
+          type: array
+          items:
+            type: number
+            example: [0, 0, NA, 0.0001, NA]
+        upperl:
+          type: array
+          items:
+            type: number
+            example: [2.5, 1, NA, 1000000, NA]
+        start:
+          type: array
+          items:
+            type: integer
+            example: [1, 0, NA, 100, NA]
+      required:
+        - dose_response_table
+        -
+      additionalProperties: false
+
+    HTTPError:
+      description: "An HTTP error"
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+
+# ==============================================================================
+
+  responses:
+    OK:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+    'OK_image':
+      description: Image generated
+      content:
+        image/png:
+          schema: 
+            type: string
+            format: binary
+    Created:
+      description: The resource was created
+      content:
+        application/json:
+          schema:
+            type: object
+    NoContent:
+      description: Success with no content
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
+    NotFound:
+      description: The resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
