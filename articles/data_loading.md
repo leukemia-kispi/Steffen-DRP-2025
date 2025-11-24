@@ -17,6 +17,9 @@ base_uri <- "http://127.0.0.1:3840/v1"
 here::i_am("inst/analysis.Rmd")
 ```
 
+> *Note*: The REST-API is interactively documented via a Swagger
+> interface available at `http://127.0.0.1:3840/__docs__/`
+
 ## Loading data into the database
 
 ### Clinical data
