@@ -1,0 +1,209 @@
+# Drug response profiling (DRP) analysis
+
+This repository accompanies the manuscript:
+
+> Steffen et al. *Drug response profiling guides precision therapy in
+> relapsed and refractory childhood acute lymphoblastic leukemia* (2025)
+
+## Overview
+
+This repository provides a step-by-step guide to drug response analysis:
+
+- 📂 **Loading** perturbation measurements and drug layouts into a
+  relational database
+- 📉 **Fitting** log-logistic dose response models
+- 🎯 **Computing** drug response metrics (logAUC, logEC50, Vres)
+- 👍 **Scoring** individual drug fingerprints relative to a reference
+  cohort
+- 📊 **Visualizing** drug profiles and distributions
+
+## Installation
+
+1.  Install [Postgres](https://www.postgresql.org/) and setup a local
+    DRP database with the following shell commands
+
+> *Note*: If you would like to look at the data outside of R you may
+> also want to get a database management tool like
+> [DBeaver](https://dbeaver.io/)
+
+``` sh
+createdb steffen-drp-2025
+psql -d steffen-drp-2025 -U postgres -f inst/ddl.sql
+psql -d steffen-drp-2025 -U postgres -f inst/import_reference.sql
+psql -d steffen-drp-2025 -U postgres -f inst/import_genes.sql 
+psql -d steffen-drp-2025 -U postgres -f inst/import_drugs.sql 
+```
+
+2.  Install the `drpr` package in an R session, e.g. using `pak`
+
+``` r
+pak::local_install(".")
+```
+
+## Getting started
+
+The DRP analytical workflow is divided into two sections:
+
+- **Part 1**: [Loading data](articles/data_loading.md) into a Postgres
+  database
+- **Part 2**: [Fitting and scoring drugs](articles/analysis.md) for
+  sensitivity and resistance
+
+# Package index
+
+## Database connections
+
+### Postgres connections
+
+Establish connections to SQL databases
+
+- [`authenticate()`](authenticate.md) : Authenticate to API
+- [`connect()`](connect.md) : Establish a connection to a DBMS
+- [`connect_with_config()`](connect_with_config.md) : Connect to DB
+  using a configuration file
+- [`dbGetInfo()`](dbGetInfo.md) : Get info on database connection
+- [`get_configuration()`](get_configuration.md) : Get configuration
+  settings
+- [`oauth()`](oauth.md) : Generate an OAuth client
+- [`request()`](request.md) : Httr2 request wrapper
+- [`runAPI()`](runAPI.md) : Run Plumber API
+
+## Input/Output (IO)
+
+### Readers
+
+Parse layout and measurement and CRF files
+
+- [`validate_layout()`](validate_layout.md) : Validate layout
+- [`validate_measurement()`](validate_measurement.md) : Validate
+  measurement
+
+## Transformations
+
+### Feature translation
+
+Translate between ID and character features
+
+- [`decode()`](decode.md) : Decode feature columns
+- [`encode()`](encode.md) : Encode feature columns
+- [`id_to_desc()`](id_to_desc.md) : Convert ID to description
+- [`desc_to_id()`](desc_to_id.md) : Convert description to ID
+- [`encode_csv()`](encode_csv.md) : Encode comma-separated values
+- [`reference()`](reference.md) : Get reference data
+
+### Format conversion
+
+Pivot between wide and long formats
+
+### Mutate and impute
+
+Mutate tibbles and add missing values
+
+- [`negative_control_stat()`](negative_control_stat.md) : Calculate
+  negative control statistics
+- [`normalize_response()`](normalize_response.md) : Normalize drug
+  responses
+- [`normalize_measurements()`](normalize_measurements.md) : Normalize
+  measurements
+- [`as_factor()`](as_factor.md) : Convert features into factors
+- [`select_from_pg()`](select_from_pg.md) : Select tibble columns from
+  Postgres
+
+## Curve fitting
+
+Prepare and post-process for dose-response models
+
+- [`cli_fit()`](cli_fit.md) : CLI for curve fitting
+- [`dose_range()`](dose_range.md) : Get preferred drug dose range
+- [`fit()`](fit.md) : Fit a drug response model
+- [`fit_wrapper()`](fit_wrapper.md) : Curve fitting wrapper
+- [`initialize_parameters()`](initialize_parameters.md) : Initialize fit
+  parameters
+- [`inverse_ll4()`](inverse_ll4.md) : Invert the log-logistic curve
+- [`ll4()`](ll4.md) : Four-parameter log-Logistic model
+- [`predict_drc()`](predict_drc.md) : Predict drug responses
+- [`relabel_fit_parameters()`](relabel_fit_parameters.md) : Relabel fit
+  parameters columns
+
+## Simulate functions
+
+Create synthetic datasets from a parameter set
+
+## Scoring functions
+
+Calculate derivate fit parameters and rank drug response profiles
+
+- [`average_response()`](average_response.md) : Calculate average drug
+  response
+- [`calculate_absolute_logEC()`](calculate_absolute_logEC.md) :
+  Calculate absolute logEC50
+- [`calculate_avg_dev()`](calculate_avg_dev.md) : Calculate the average
+  replicate deviation
+- [`calculate_dmso_recovery()`](calculate_dmso_recovery.md) : Calculate
+  DMSO recovery
+- [`calculate_dss()`](calculate_dss.md) : Calculate the drug sensitivity
+  score (DSS)
+- [`calculate_logAUC()`](calculate_logAUC.md) : Calculate the
+  logarithmic area-under-curve (logAUC)
+- [`calculate_norm_logAUC()`](calculate_norm_logAUC.md) : Calculate the
+  normalized area-under-curve (norm. logAUC)
+- [`calculate_norm_logEC50()`](calculate_norm_logEC50.md) : Calculate
+  the normalized logEC50
+- [`calculate_percentile()`](calculate_percentile.md) : Calculate
+  percentiles of fit parameters
+- [`calculate_proliferation()`](calculate_proliferation.md) : Calculate
+  proliferation index
+- [`calculate_rank()`](calculate_rank.md) : Calculate rank of fit
+  parameters
+- [`calculate_relative_logEC()`](calculate_relative_logEC.md) :
+  Calculate relative logEC
+- [`calculate_sdss()`](calculate_sdss.md) : Calculate the differential
+  drug sensitivity score (DSS)
+- [`calculate_variance_score()`](calculate_variance_score.md) : Patient
+  fingerprint variance score
+- [`calculate_zscore()`](calculate_zscore.md) : Calculation z-score of
+  fit parameters
+- [`calculate_zscore_from_stats()`](calculate_zscore_from_stats.md) :
+  Calculation z-score with cohort statistics
+- [`cor_pmat()`](cor_pmat.md) : Correlation p-value
+- [`derive_fit_features()`](derive_fit_features.md) : Calculate cohort
+  scores
+- [`derive_parameters()`](derive_parameters.md) : Calculate derivate fit
+  parameters
+
+## Plotting functions
+
+Visualize drug response profiles
+
+- [`plot_distribution()`](plot_distribution.md) : Plot drug distribution
+- [`plot_plate()`](plot_plate.md) : Draw a multi-well plate
+- [`plot_profile()`](plot_profile.md) : Plot drug response profiles
+- [`theme_drpr()`](theme_drpr.md) : Add drpr plot theme to ggplot
+- [`custom_palettes()`](custom_palettes.md) : Custom color palettes
+- [`darken_color()`](darken_color.md) : Make color darker
+- [`get_hex_colors()`](get_hex_colors.md) : HEX color from a colormap
+- [`lighten_color()`](lighten_color.md) : Make color lighter
+- [`scale_color_fill_custom()`](scale_color_fill_custom.md) : Add custom
+  color and fill scale
+
+## Helper functions
+
+- [`activateCache()`](activateCache.md) : Activate R.cache
+- [`alphanumeric_tbl()`](alphanumeric_tbl.md) : Expand an alphanumeric
+  range into a tibble
+- [`as_flextable()`](as_flextable.md) : Convert tibble into flextable
+- [`clearCache()`](clearCache.md) : Clear R.cache
+- [`deactivateCache()`](deactivateCache.md) : Deactivate R.cache
+- [`duplicated_rows()`](duplicated_rows.md) : Identify duplicated rows
+- [`get_file_type()`](get_file_type.md) : Get file type
+- [`linspace()`](linspace.md) : Equally linearly-spaced numbers
+- [`logspace()`](logspace.md) : Equally log-spaced numbers
+- [`next_id()`](next_id.md) : Get next ID
+- [`statusCache()`](statusCache.md) : Status of R.cache
+
+# Articles
+
+### Drug response profiling analysis
+
+- [Loading data via REST-API](data_loading.md):
+- [DRP Analysis](analysis.md):
