@@ -40,5 +40,5 @@ pak::local_install(".")
 
 The DRP analytical workflow is divided into two sections:
 
-- **Part 1**: [Loading data](articles/data_loading.html) into a Postgres database
-- **Part 2**: [Fitting and scoring drugs](articles/analysis.html) for sensitivity and resistance
+- **Part I**: [Loading data](https://leukemia-kispi.github.io/Steffen-DRP-2025/articles/data_loading.html) into a Postgres database
+- **Part II**: [Curve fitting and scoring drugs](https://leukemia-kispi.github.io/Steffen-DRP-2025/articles/analysis.html) for sensitivity and resistance
